@@ -1,0 +1,5 @@
+name: Logstash
+description: |
+  Ambiente prova de conceito de armazenamento remoto de logs
+version: v1
+category: PoC

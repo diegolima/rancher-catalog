@@ -1,0 +1,19 @@
+version: '2'
+services:
+  zabbix-db-mariadb:
+    image: monitoringartist/zabbix-db-mariadb
+    environment:
+      - MARIADB_USER=zabbix
+      - MARIADB_PASS=supastrong_password
+  zabbix:
+    image: monitoringartist/dockbix-xxl:3.4.2
+    links:
+      - zabbix-db-mariadb
+    environment:
+      - ZS_DBHost=zabbix-db-mariadb
+      - ZS_DBUser=zabbix
+      - ZS_DBPassword=supastrong_password
+      - XXL_zapix=true
+      - XXL_grapher=true
+    ports:
+      - ${public_agent_port}:10051

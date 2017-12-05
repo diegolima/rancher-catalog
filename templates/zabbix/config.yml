@@ -1,0 +1,5 @@
+name: Zabix
+description: |
+  Ambiente prova de conceito de monitoração utilizando Zabbix
+version: v1
+category: PoC

@@ -1,0 +1,70 @@
+version: '2'
+services:
+  logspout:
+    image: rtoma/logspout-redis-logstash:0.1.8
+    environment:
+      - REDIS_KEY=logstash
+      - DEDOT_LABELS=true
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    links:
+      - redis
+    command: 'redis://redis:6379'
+    tty: true
+    stdin_open: true
+    restart: always
+    labels:
+      io.rancher.scheduler.global: 'true'
+      io.rancher.container.hostname_override: container_name
+
+  redis:
+    image: redis:3.2.6-alpine
+    environment:
+      LOGSPOUT: 'ignore'
+    tty: true
+    stdin_open: true
+    restart: always
+    labels:
+      io.rancher.container.hostname_override: container_name
+
+  logstash-config:
+    image: rancher/logstash-config:v0.2.0
+    environment:
+      LOGSPOUT: 'ignore'
+    restart: always
+    labels:
+      io.rancher.container.hostname_override: container_name
+
+  logstash-cleaner:
+    image: diegolima/cifs-cleaner:latest
+    privileged: true
+    environment:
+      CIFS_SOURCE: ${CIFS_SOURCE}
+      CIFS_USER: ${CIFS_USER}
+      CIFS_PASS: ${CIFS_PASS}
+      CLEANUP_OLDER_THAN: ${CLEANUP_OLDER_THAN}
+      CLEANUP_DIRECTORY: ${CLEANUP_DIRECTORY}
+      CLEANUP_SLEEP: ${CLEANUP_SLEEP}
+
+  logstash:
+    image: diegolima/cifs-logstash:latest
+    environment:
+      LOGSPOUT: 'ignore'
+      CIFS_SOURCE: ${CIFS_SOURCE}
+      CIFS_USER: ${CIFS_USER}
+      CIFS_PASS: ${CIFS_PASS}
+    tty: true
+    privileged: true
+    volumes_from:
+      - logstash-config
+    links:  
+      - redis:redis
+    command:
+      - logstash
+      - -f
+      - /etc/logstash
+    stdin_open: true
+    restart: always
+    labels:
+      io.rancher.sidekicks: logstash-config
+      io.rancher.container.hostname_override: container_name

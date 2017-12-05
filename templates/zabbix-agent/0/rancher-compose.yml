@@ -1,0 +1,13 @@
+version: '2'
+.catalog:
+  name: "zabbixagent"
+  version: "v1"
+  description: "Agente de monitoramento Zabbix"
+  uuid: zagent-0
+  minimum_rancher_version: v0.51.0
+  questions:
+    - variable: zabbix_server
+      description: "Endereço do servidor Zabbix"
+      label: "Zabbix Server Address"
+      required: true
+      type: "string"

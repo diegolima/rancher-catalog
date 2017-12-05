@@ -1,0 +1,82 @@
+version: '2'
+.catalog:
+  name: "logstash"
+  version: "v1"
+  description: "Ambiente prova de conceito de atualizacao de versoes de um item do catalogo"
+  uuid: logstash-0
+  minimum_rancher_version: v0.51.0
+  questions:
+    - variable: CIFS_SOURCE
+      description: "Ponto de montagem remoto (CIFS)"
+      label: "Endereco CIFS"
+      required: true
+      default: "//atm/logstash"
+      type: "string"
+    - variable: CIFS_USER
+      description: "Usuario autorizado a montar o ponto remoto (CIFS)"
+      label: "Usuario CIFS"
+      required: true
+      default: "usr_rancher"
+      type: "string"
+    - variable: CIFS_PASS
+      description: "Senha do usuario autorizado a montar o ponto remoto (CIFS)"
+      label: "Senha CIFS"
+      required: true
+      default: "iPMYTojW8gcNKA8"
+      type: "password"
+    - variable: CLEANUP_OLDER_THAN
+      description: "Idade máxima dos logs (dias)"
+      label: "Idade de Logs"
+      required: true
+      default: "7"
+      type: "int"
+    - variable: CLEANUP_DIRECTORY
+      description: "Subdiretorio dentro do ponto de montagem a partir do qual a limpeza será realizada"
+      label: "Subdiretorio"
+      required: false
+      default: "log"
+      type: "string"
+    - variable: CLEANUP_SLEEP
+      description: "Intervalo de Limpeza de logs (segundos)"
+      label: "Intervalo de Limpeza"
+      default: "86400"
+      required: false
+      type: "int"
+services:
+  logstash:
+    metadata:
+      logstash:
+        inputs: |
+          redis {
+            host => "redis.rancher.internal"
+            port => "6379"
+            data_type => "list"
+            key => "logstash"
+          }
+        filters: |
+          if [docker][image] == "rancher/server" {
+            drop { }
+          }
+          if [docker][image] == "rancher/agent" {
+            drop { }
+          }
+          if [docker][labels][io_rancher_stack_name] == "healthcheck" {
+            drop { }
+          }
+          if [docker][labels][io_rancher_stack_name] == "ipsec" {
+            drop { }
+          }
+          if [docker][labels][io_rancher_stack_name] == "Logging" {
+            drop { }
+          }
+          if [docker][labels][io_rancher_stack_name] == "network-services" {
+            drop { }
+          }
+          if [docker][labels][io_rancher_stack_name] == "scheduler" {
+            drop { }
+          }
+        outputs: |
+          file {
+            path => ["/usr/share/logstash/data/log/%{[docker][labels][io_rancher_stack_name]}/%{[docker][labels][io_rancher_stack_name]}-%{+YYYY-MM-dd}.log"]
+            codec => line { format => "%{@timestamp} %{[docker][source]} %{[docker][labels][io_rancher_container_name]} %{message}" }
+          }

@@ -1,0 +1,19 @@
+version: '2'
+.catalog:
+  name: "zabbix"
+  version: "v1"
+  description: "Ambiente prova de conceito de armazenamento centralizado utilizando o driver vmware vSphere"
+  uuid: vfile-1
+  minimum_rancher_version: v0.51.0
+  questions:
+    - variable: public_agent_port
+      description: "Porta de comunicacao dos agentes Zabbix"
+      label: "Zabbix Agent Port"
+      required: true
+      default: "10051"
+      type: "int"
+services:
+  zabbix:
+    scale: 1
+  zabbix-db-mariadb:
+    scale: 1
